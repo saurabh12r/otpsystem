@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OTP Service Admin</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f0f2f5; color: #333; }
+  .container { max-width: 960px; margin: 0 auto; padding: 20px; }
+  h1 { font-size: 24px; margin-bottom: 20px; }
+  h2 { font-size: 20px; margin-bottom: 16px; }
+  h3 { font-size: 16px; margin-bottom: 12px; }
+
+  /* Nav */
+  .nav { background: #1a73e8; color: #fff; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; }
+  .nav h1 { color: #fff; margin: 0; font-size: 18px; }
+  .nav button { background: rgba(255,255,255,0.2); border: none; color: #fff; padding: 6px 14px; border-radius: 4px; cursor: pointer; }
+
+  /* Cards */
+  .card { background: #fff; border-radius: 8px; padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 20px; }
+  .stat { background: #fff; border-radius: 8px; padding: 16px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+  .stat .num { font-size: 28px; font-weight: 700; color: #1a73e8; }
+  .stat .label { font-size: 12px; color: #666; margin-top: 4px; }
+
+  /* Forms */
+  .form-group { margin-bottom: 12px; }
+  .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px; color: #555; }
+  .form-group input, .form-group select { width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  /* Buttons */
+  .btn { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; }
+  .btn-primary { background: #1a73e8; color: #fff; }
+  .btn-success { background: #34a853; color: #fff; }
+  .btn-danger { background: #ea4335; color: #fff; }
+  .btn-warning { background: #f9ab00; color: #fff; }
+  .btn-sm { padding: 4px 10px; font-size: 12px; }
+  .btn:hover { opacity: 0.9; }
+
+  /* Table */
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #eee; }
+  th { background: #f8f9fa; font-weight: 600; color: #555; font-size: 12px; text-transform: uppercase; }
+  .badge { padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+  .badge-green { background: #e6f4ea; color: #137333; }
+  .badge-red { background: #fce8e6; color: #c5221f; }
+  .badge-yellow { background: #fef7e0; color: #b06000; }
+
+  /* Login */
+  .login-wrap { display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+  .login-box { background: #fff; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); width: 360px; }
+  .login-box h2 { text-align: center; margin-bottom: 24px; }
+
+  /* Misc */
+  .hidden { display: none !important; }
+  .back-btn { background: none; border: none; color: #1a73e8; cursor: pointer; font-size: 14px; margin-bottom: 12px; padding: 0; }
+  .back-btn:hover { text-decoration: underline; }
+  .copy-btn { background: #e8f0fe; color: #1a73e8; border: 1px solid #c6dafc; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+  .api-key-box { background: #f8f9fa; padding: 10px; border-radius: 6px; font-family: monospace; font-size: 12px; word-break: break-all; margin: 8px 0; display: flex; justify-content: space-between; align-items: center; }
+  .toast { position: fixed; bottom: 20px; right: 20px; background: #333; color: #fff; padding: 12px 20px; border-radius: 8px; font-size: 14px; z-index: 999; transition: opacity 0.3s; }
+  .actions { display: flex; gap: 6px; }
+  .mt-12 { margin-top: 12px; }
+  .mb-12 { margin-bottom: 12px; }
+  .text-muted { color: #888; font-size: 13px; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN PAGE -->
+<div id="loginPage" class="login-wrap">
+  <div class="login-box">
+    <h2>OTP Service Admin</h2>
+    <div class="form-group">
+      <label>Username</label>
+      <input type="text" id="loginUser" value="admin">
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="loginPass" value="admin123">
+    </div>
+    <button class="btn btn-primary" style="width:100%;margin-top:12px" onclick="doLogin()">Login</button>
+    <p id="loginError" style="color:red;text-align:center;margin-top:8px;font-size:13px" class="hidden"></p>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="mainApp" class="hidden">
+  <div class="nav">
+    <h1>OTP Service Admin</h1>
+    <button onclick="doLogout()">Logout</button>
+  </div>
+  <div class="container">
+
+    <!-- DASHBOARD -->
+    <div id="dashboardPage">
+      <h2 class="mt-12">Dashboard</h2>
+      <div class="stats" id="statsGrid"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center" class="mb-12">
+        <h2 style="margin:0">Businesses</h2>
+        <button class="btn btn-primary" onclick="showCreateBiz()">+ New Business</button>
+      </div>
+      <div class="card" id="bizList"><p class="text-muted">Loading...</p></div>
+    </div>
+
+    <!-- CREATE BUSINESS FORM -->
+    <div id="createBizPage" class="hidden">
+      <button class="back-btn" onclick="showDashboard()">&larr; Back</button>
+      <div class="card">
+        <h2>Create New Business</h2>
+        <div class="form-row">
+          <div class="form-group"><label>Business Name</label><input id="cbName"></div>
+          <div class="form-group"><label>Owner Name</label><input id="cbOwner"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Owner Phone</label><input id="cbPhone" placeholder="+919876543210"></div>
+          <div class="form-group"><label>Owner Email (optional)</label><input id="cbEmail"></div>
+        </div>
+        <button class="btn btn-primary mt-12" onclick="createBiz()">Create Business</button>
+      </div>
+      <div id="newBizResult" class="hidden card" style="margin-top:16px"></div>
+    </div>
+
+    <!-- BUSINESS DETAIL -->
+    <div id="bizDetailPage" class="hidden">
+      <button class="back-btn" onclick="showDashboard()">&larr; Back to Businesses</button>
+      <div class="card" id="bizInfo"></div>
+      <div class="card mt-12">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <h3>Mobile Numbers (SMS Senders)</h3>
+          <button class="btn btn-primary btn-sm" onclick="showAddNumber()">+ Add Number</button>
+        </div>
+        <div id="addNumberForm" class="hidden mt-12" style="background:#f8f9fa;padding:16px;border-radius:8px">
+          <div class="form-row">
+            <div class="form-group"><label>Phone Number</label><input id="anPhone" placeholder="+919999888877"></div>
+            <div class="form-group"><label>Password (for APK login)</label><input id="anPass" type="text" placeholder="min 6 chars"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Label</label><input id="anLabel" placeholder="Owner Phone"></div>
+            <div class="form-group"><label>Priority (1=highest)</label><input id="anPriority" type="number" value="1" min="1" max="10"></div>
+          </div>
+          <button class="btn btn-success btn-sm" onclick="addNumber()">Add</button>
+          <button class="btn btn-sm" style="background:#eee" onclick="hideAddNumber()">Cancel</button>
+        </div>
+        <table class="mt-12">
+          <thead><tr><th>Phone</th><th>Label</th><th>Priority</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="numbersBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast" class="toast hidden"></div>
+
+<script>
+const API = '';
+let token = sessionStorage.getItem('admin_token') || '';
+let currentBizId = '';
+let currentBizApiKey = '';
+
+// ─── AUTH ─────────────────────────
+async function doLogin() {
+  const user = document.getElementById('loginUser').value;
+  const pass = document.getElementById('loginPass').value;
+  try {
+    const r = await api('POST', '/api/admin/login', { username: user, password: pass }, false);
+    token = r.token;
+    sessionStorage.setItem('admin_token', token);
+    document.getElementById('loginPage').classList.add('hidden');
+    document.getElementById('mainApp').classList.remove('hidden');
+    showDashboard();
+  } catch (e) {
+    document.getElementById('loginError').textContent = e.message;
+    document.getElementById('loginError').classList.remove('hidden');
+  }
+}
+
+function doLogout() {
+  sessionStorage.removeItem('admin_token');
+  token = '';
+  document.getElementById('mainApp').classList.add('hidden');
+  document.getElementById('loginPage').classList.remove('hidden');
+}
+
+// ─── API HELPER ───────────────────
+async function api(method, path, body, auth = true) {
+  const opts = { method, headers: { 'Content-Type': 'application/json' } };
+  if (auth) opts.headers['x-admin-token'] = token;
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(API + path, opts);
+  const data = await res.json();
+  if (!data.success) throw new Error(data.message || 'Request failed');
+  return data.data || data;
+}
+
+// ─── DASHBOARD ────────────────────
+async function showDashboard() {
+  hide('createBizPage', 'bizDetailPage');
+  show('dashboardPage');
+  loadStats();
+  loadBusinesses();
+}
+
+async function loadStats() {
+  try {
+    const d = await api('GET', '/api/admin/dashboard');
+    document.getElementById('statsGrid').innerHTML = `
+      <div class="stat"><div class="num">${d.total_businesses}</div><div class="label">Businesses</div></div>
+      <div class="stat"><div class="num">${d.total_numbers}</div><div class="label">Mobile Numbers</div></div>
+      <div class="stat"><div class="num">${d.otp_sent_today}</div><div class="label">OTP Sent Today</div></div>
+      <div class="stat"><div class="num">${d.otp_failed_today}</div><div class="label">Failed Today</div></div>
+    `;
+  } catch (e) { console.error(e); }
+}
+
+async function loadBusinesses() {
+  try {
+    const list = await api('GET', '/api/admin/businesses');
+    if (!list.length) {
+      document.getElementById('bizList').innerHTML = '<p class="text-muted">No businesses yet. Create one!</p>';
+      return;
+    }
+    document.getElementById('bizList').innerHTML = `<table>
+      <thead><tr><th>Name</th><th>Owner</th><th>Phone</th><th>Verified</th><th>Active</th><th>Actions</th></tr></thead>
+      <tbody>${list.map(b => `<tr>
+        <td><a href="#" onclick="openBiz('${b._id}');return false" style="color:#1a73e8;font-weight:500">${esc(b.name)}</a></td>
+        <td>${esc(b.owner_name)}</td>
+        <td>${esc(b.owner_phone)}</td>
+        <td>${b.is_verified ? '<span class="badge badge-green">Yes</span>' : '<span class="badge badge-yellow">No</span>'}</td>
+        <td>${b.is_active ? '<span class="badge badge-green">Active</span>' : '<span class="badge badge-red">Disabled</span>'}</td>
+        <td class="actions">
+          ${!b.is_verified ? `<button class="btn btn-success btn-sm" onclick="verifyBiz('${b._id}')">Verify</button>` : ''}
+          <button class="btn btn-sm ${b.is_active ? 'btn-danger' : 'btn-success'}" onclick="toggleBiz('${b._id}')">${b.is_active ? 'Disable' : 'Enable'}</button>
+        </td>
+      </tr>`).join('')}</tbody></table>`;
+  } catch (e) { document.getElementById('bizList').innerHTML = `<p style="color:red">${e.message}</p>`; }
+}
+
+// ─── CREATE BUSINESS ──────────────
+function showCreateBiz() {
+  hide('dashboardPage', 'bizDetailPage');
+  show('createBizPage');
+  document.getElementById('newBizResult').classList.add('hidden');
+  ['cbName','cbOwner','cbPhone','cbEmail'].forEach(id => document.getElementById(id).value = '');
+}
+
+async function createBiz() {
+  const body = {
+    name: val('cbName'), owner_name: val('cbOwner'),
+    owner_phone: val('cbPhone'), owner_email: val('cbEmail'),
+  };
+  try {
+    const r = await api('POST', '/api/admin/businesses', body);
+    document.getElementById('newBizResult').classList.remove('hidden');
+    document.getElementById('newBizResult').innerHTML = `
+      <h3 style="color:#34a853">Business Created!</h3>
+      <p><strong>${esc(r.business.name)}</strong> — ID: <code>${r.business._id}</code></p>
+      <p style="margin-top:8px"><strong>API Key</strong> (copy this — shown only once):</p>
+      <div class="api-key-box"><span>${r.api_key}</span><button class="copy-btn" onclick="copyText('${r.api_key}')">Copy</button></div>
+      <p class="text-muted">Now verify the business and add mobile numbers.</p>
+    `;
+    toast('Business created!');
+  } catch (e) { toast(e.message, true); }
+}
+
+// ─── BUSINESS DETAIL ──────────────
+async function openBiz(id) {
+  currentBizId = id;
+  hide('dashboardPage', 'createBizPage');
+  show('bizDetailPage');
+  hideAddNumber();
+  try {
+    const r = await api('GET', `/api/admin/businesses/${id}`);
+    const b = r.business;
+    const nums = r.mobile_numbers;
+    currentBizApiKey = '';
+
+    document.getElementById('bizInfo').innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:start">
+        <div>
+          <h2>${esc(b.name)}</h2>
+          <p class="text-muted">${esc(b.owner_name)} &bull; ${esc(b.owner_phone)}</p>
+          <p class="mt-12">
+            ${b.is_verified ? '<span class="badge badge-green">Verified</span>' : '<span class="badge badge-yellow">Not Verified</span>'}
+            ${b.is_active ? '<span class="badge badge-green">Active</span>' : '<span class="badge badge-red">Disabled</span>'}
+          </p>
+        </div>
+        <div class="actions">
+          ${!b.is_verified ? `<button class="btn btn-success btn-sm" onclick="verifyBiz('${b._id}')">Verify</button>` : ''}
+          <button class="btn btn-sm ${b.is_active ? 'btn-danger' : 'btn-success'}" onclick="toggleBiz('${b._id}')">${b.is_active ? 'Disable' : 'Enable'}</button>
+          <button class="btn btn-warning btn-sm" onclick="refreshKey('${b._id}')">New API Key</button>
+        </div>
+      </div>
+      <div id="apiKeyDisplay" class="mt-12"></div>
+    `;
+
+    renderNumbers(nums);
+  } catch (e) { toast(e.message, true); }
+}
+
+function renderNumbers(nums) {
+  if (!nums.length) {
+    document.getElementById('numbersBody').innerHTML = '<tr><td colspan="5" class="text-muted">No mobile numbers. Add one!</td></tr>';
+    return;
+  }
+  document.getElementById('numbersBody').innerHTML = nums.map(n => `<tr>
+    <td><code>${esc(n.phone_number)}</code></td>
+    <td>${esc(n.label || '-')}</td>
+    <td>${n.priority}</td>
+    <td>${n.is_active ? '<span class="badge badge-green">Active</span>' : '<span class="badge badge-red">Disabled</span>'}</td>
+    <td class="actions">
+      <button class="btn btn-sm ${n.is_active ? 'btn-danger' : 'btn-success'}" onclick="toggleNum('${n._id}', ${!n.is_active})">${n.is_active ? 'Disable' : 'Enable'}</button>
+      <button class="btn btn-sm btn-danger" onclick="deleteNum('${n._id}')">Delete</button>
+    </td>
+  </tr>`).join('');
+}
+
+// ─── ACTIONS ──────────────────────
+async function verifyBiz(id) {
+  try {
+    await api('PATCH', `/api/admin/businesses/${id}`, { is_verified: true });
+    toast('Business verified!');
+    if (currentBizId === id) openBiz(id); else loadBusinesses();
+  } catch (e) { toast(e.message, true); }
+}
+
+async function toggleBiz(id) {
+  try {
+    const r = await api('POST', `/api/admin/businesses/${id}/toggle`);
+    toast(r.is_active ? 'Business enabled' : 'Business disabled');
+    if (currentBizId === id) openBiz(id); else loadBusinesses();
+  } catch (e) { toast(e.message, true); }
+}
+
+async function refreshKey(id) {
+  if (!confirm('Generate a new API key? The old key will stop working.')) return;
+  try {
+    const r = await api('POST', `/api/admin/businesses/${id}/refresh-key`);
+    document.getElementById('apiKeyDisplay').innerHTML = `
+      <p><strong>New API Key</strong> (copy — shown only once):</p>
+      <div class="api-key-box"><span>${r.api_key}</span><button class="copy-btn" onclick="copyText('${r.api_key}')">Copy</button></div>
+    `;
+    toast('New API key generated!');
+  } catch (e) { toast(e.message, true); }
+}
+
+function showAddNumber() { document.getElementById('addNumberForm').classList.remove('hidden'); }
+function hideAddNumber() { document.getElementById('addNumberForm').classList.add('hidden'); }
+
+async function addNumber() {
+  const body = {
+    phone_number: val('anPhone'), password: val('anPass'),
+    label: val('anLabel'), priority: parseInt(val('anPriority')) || 1,
+  };
+  try {
+    await api('POST', `/api/admin/businesses/${currentBizId}/numbers`, body);
+    toast('Number added!');
+    hideAddNumber();
+    openBiz(currentBizId);
+  } catch (e) { toast(e.message, true); }
+}
+
+async function toggleNum(id, active) {
+  try {
+    await api('PATCH', `/api/admin/numbers/${id}`, { is_active: active });
+    toast(active ? 'Number enabled' : 'Number disabled');
+    openBiz(currentBizId);
+  } catch (e) { toast(e.message, true); }
+}
+
+async function deleteNum(id) {
+  if (!confirm('Delete this mobile number?')) return;
+  try {
+    await api('DELETE', `/api/admin/numbers/${id}`);
+    toast('Number deleted');
+    openBiz(currentBizId);
+  } catch (e) { toast(e.message, true); }
+}
+
+// ─── HELPERS ──────────────────────
+function val(id) { return document.getElementById(id).value.trim(); }
+function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+function show(...ids) { ids.forEach(id => document.getElementById(id).classList.remove('hidden')); }
+function hide(...ids) { ids.forEach(id => document.getElementById(id).classList.add('hidden')); }
+
+function copyText(text) {
+  navigator.clipboard.writeText(text).then(() => toast('Copied!'));
+}
+
+function toast(msg, isError) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.style.background = isError ? '#ea4335' : '#333';
+  el.classList.remove('hidden');
+  setTimeout(() => el.classList.add('hidden'), 2500);
+}
+
+// ─── INIT ─────────────────────────
+if (token) {
+  document.getElementById('loginPage').classList.add('hidden');
+  document.getElementById('mainApp').classList.remove('hidden');
+  showDashboard();
+}
+</script>
+</body>
+</html>
