@@ -1,0 +1,83 @@
+# ─────────────────────────────────────────
+# macOS
+# ─────────────────────────────────────────
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+
+# ─────────────────────────────────────────
+# Node.js (otpapp / otpback)
+# ─────────────────────────────────────────
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Secrets / Service accounts
+serviceAccountKey.json
+**/serviceAccountKey.json
+
+# Build output
+dist/
+out/
+
+# ─────────────────────────────────────────
+# Flutter (otpappflutter)
+# ─────────────────────────────────────────
+
+# Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+**/build/
+/coverage/
+
+# Symbolication related
+app.*.symbols
+
+# Obfuscation related
+app.*.map.json
+
+# Android Studio build artifacts
+**/android/app/debug/
+**/android/app/profile/
+**/android/app/release/
+
+# IntelliJ / Android Studio
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# Miscellaneous
+*.class
+*.pyc
+*.swp
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# VS Code (optional — uncomment to ignore)
+# .vscode/
+
+# ─────────────────────────────────────────
+# Firebase
+# ─────────────────────────────────────────
+.firebaserc
+firebase-debug.log
+.firebase/
